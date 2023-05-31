@@ -11,7 +11,18 @@ contract FundMe {
 
     address[] funders;
     mapping(address => uint256) public addressToAmountFunded;
+
+    address public owner;
     
+    constructor(){
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner(){
+        require(owner == msg.sender, "Sender is not the owner.");
+        _;
+    }
+
     function fund() external payable {
         // Want to be able to specify a minimum amount for deposit
          require(msg.value.getConversionRate() >= minimumUSD, "Didnt meet minimum deposit amount");
@@ -19,7 +30,7 @@ contract FundMe {
          addressToAmountFunded[msg.sender] += msg.value;
     }
 
-    function withdraw() public {
+    function withdraw() public onlyOwner() {
         for (uint256 funderIndex = 0; funderIndex < funders.length; funderIndex++){
             address funder = funders[funderIndex];
             // Reset funder amount to 0
