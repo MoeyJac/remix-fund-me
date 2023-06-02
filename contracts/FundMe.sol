@@ -28,7 +28,7 @@ contract FundMe {
         _;
     }
 
-    function fund() external payable {
+    function fund() public payable {
         // Want to be able to specify a minimum amount for deposit
          require(msg.value.getConversionRate() >= MINIMUM_USD, "Didnt meet minimum deposit amount");
          funders.push(msg.sender);
@@ -63,7 +63,16 @@ contract FundMe {
 
     // What happens if someone sens this contract ETH without calling the fund function?
 
-    // receive()
-    // fallback()
+    // Used if msg.data is blank
+    receive() external payable {
+        // Call fund function if value was sent with no specific function called
+        fund();
+    }
+
+    // Used if msg.data is not empty OR msg.data is empty and no receive function is implemented
+    fallback() external payable {
+        // Call fund function if value was sent with no specific function called
+        fund();
+    }
 
 }
