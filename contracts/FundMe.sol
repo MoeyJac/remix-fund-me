@@ -4,28 +4,33 @@ pragma solidity ^0.8.8;
 
 import "./PriceConverter.sol";
 
+//constant, immutable used for gas savings
+
+error NotOwner();
+
 contract FundMe {
     using PriceConverter for uint256;
 
-    uint256 public minimumUSD = 50 * 1e18;
+    uint256 public constant MINIMUM_USD = 50 * 1e18;
 
     address[] funders;
     mapping(address => uint256) public addressToAmountFunded;
 
-    address public owner;
+    address public immutable i_owner;
     
     constructor(){
-        owner = msg.sender;
+        i_owner = msg.sender;
     }
 
     modifier onlyOwner(){
-        require(owner == msg.sender, "Sender is not the owner.");
+        // require(i_owner == msg.sender, "Sender is not the owner.");
+        if(msg.sender != i_owner){ revert NotOwner(); }
         _;
     }
 
     function fund() external payable {
         // Want to be able to specify a minimum amount for deposit
-         require(msg.value.getConversionRate() >= minimumUSD, "Didnt meet minimum deposit amount");
+         require(msg.value.getConversionRate() >= MINIMUM_USD, "Didnt meet minimum deposit amount");
          funders.push(msg.sender);
          addressToAmountFunded[msg.sender] += msg.value;
     }
@@ -55,5 +60,10 @@ contract FundMe {
         (bool callSuccess, ) = payable(msg.sender).call{value: address(this).balance}("");
         require(callSuccess, "Call failed");
     }
+
+    // What happens if someone sens this contract ETH without calling the fund function?
+
+    // receive()
+    // fallback()
 
 }
